@@ -1,0 +1,35 @@
+clc; clear all; close all;
+%Parametros
+global M F m L J S g
+%Carro
+M=0.301;   %[Kg]
+F=5;    %[N*s/m] 
+%Pendulo
+m=0.101;   %[Kg]
+L=0.3;     %[m]
+J=0.01072; %[Kg*m^2] 
+S=0.00001; %[N*m*s/rad] 
+g=9.81;    %[m/s^2]
+%Constantes auxiliares
+rad=0.006135923;
+r2dg=180/pi;
+metros=0.001;
+fc=20;     %[Hz] 
+Tm=0.01;   %[s]
+hys= 10.3;    %[PWM] recalibrar cada vez
+%Modelado y discretización
+dt= J*(M+m)+M*m*L^2;
+A = [0, 1, 0, 0; 0, -F*(J+m*L^2)/dt, -m^2*L^2*g/dt, m*L*F*S/dt;
+      0, 0, 0, 1; 0, m*L*F/dt, (M+m)*m*L*g/dt, -S*(M+m)/dt ];
+B = [0; (J+m*L^2)/dt; 0; -m*L/dt];
+C=[1 0 0 0; 0 0 1 0];
+D=0;
+[Ad,Bd]=c2d(A,B,Tm);
+%Matrices de costo
+Q=diag([10,0,10,5]);
+R=5;
+%Calculo de ganancias
+[K,P]=dlqr(Ad,Bd,Q,R);
+Kre=[K(2), K(3), K(4)];
+Kp=K(1);
+disp(K)
